@@ -170,7 +170,12 @@ protected:
 
             // cout << type;
             set<pair<boost::int512_t, pair<string, string>>>::iterator removeUriPartitionIt;
-            assert(LoadUriPartition.size() > 0);
+            //assert(LoadUriPartition.size() > 0);
+            if (LoadUriPartition.size() == 0) {
+                cerr << "WARNING: LoadUriPartition is empty, skipping migration candidates." << std::endl;
+                break;
+            }
+
             // binary
             if (migrationPolicyType == 1)
             {

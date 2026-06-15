@@ -67,7 +67,13 @@ public:
         {
             return;
         }
-        assert(ForecastMap[nodeId].size() == FORECAST_WINDOW_SIZE);
+        //assert(ForecastMap[nodeId].size() == FORECAST_WINDOW_SIZE);
+        // When a URI partition fails to allocate to any node, ForecastMap is never initialized, log and skip.
+        if (ForecastMap[nodeId].size() != FORECAST_WINDOW_SIZE) {
+            cerr << "WARNING: ForecastMap[" << nodeId << "] size mismatch, skipping DeleteReplicaFromForecastMap." << endl;
+            return;
+        }
+
         for (int i = 0; i < FORECAST_WINDOW_SIZE; i++)
         {
             it++;

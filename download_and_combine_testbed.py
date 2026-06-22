@@ -32,39 +32,42 @@ def is_valid_xlsx(path: Path) -> bool:
     except (zipfile.BadZipFile, Exception):
         return False
 
-
 def download_part(part_num: int, force: bool = False) -> Path:
-    """Download a single part file; returns path to saved file."""
-    # filename = f"testbed_10march_16march_part{part_num}.xlsx"
-    filename = f"testbed_3march_9march_part{part_num}.xlsx"
-    url = f"{BASE_URL}/{filename}"
+    """Download + merge both testbed ranges into a single file per part."""
+    filename1 = f"testbed_3march_9march_part{part_num}.xlsx"
+    filename2 = f"testbed_10march_16march_part{part_num}.xlsx"
+    filename  = f"testbed_3march_16march_part{part_num}.csv"
     path = DOWNLOAD_DIR / filename
     path.parent.mkdir(parents=True, exist_ok=True)
 
     if path.exists() and not force:
-        if is_valid_xlsx(path):
-            print(f"Using cached part {part_num}/29: {filename}")
-            return path
-        print(f"Cached part {part_num}/29 is corrupt, re-downloading ...")
+        print(f"Using cached part {part_num}/29: {filename}")
+        return path
 
-    print(f"Downloading part {part_num}/29: {filename} ...", end=" ", flush=True)
-    r = requests.get(url, stream=True, timeout=120)
-    r.raise_for_status()
-    with open(path, "wb") as f:
-        for chunk in r.iter_content(chunk_size=8192):
-            f.write(chunk)
-    print("OK")
+    for fname in (filename1, filename2):
+        tmp = DOWNLOAD_DIR / fname
+        url = f"{BASE_URL}/{fname}"
+        print(f"Downloading part {part_num}/29: {fname} ...", end=" ", flush=True)
+        r = requests.get(url, stream=True, timeout=120)
+        r.raise_for_status()
+        with open(tmp, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print("OK")
+        if not is_valid_xlsx(tmp):
+            raise RuntimeError(f"Downloaded {fname} is not a valid xlsx file")
 
-    if not is_valid_xlsx(path):
-        raise RuntimeError(f"Downloaded {filename} is not a valid xlsx file")
+    df1 = pd.read_excel(DOWNLOAD_DIR / filename1, header=None, names=COL_NAMES, engine=EXCEL_ENGINE)
+    df2 = pd.read_excel(DOWNLOAD_DIR / filename2, header=None, names=COL_NAMES, engine=EXCEL_ENGINE)
+    combined = pd.concat([df1, df2], ignore_index=True)
+    combined.to_csv(path, index=False, header=False)
     return path
 
 
 def _read_one_xlsx(path: Path) -> pd.DataFrame:
-    """Read a single xlsx part using the fast calamine engine."""
-    return pd.read_excel(
-        path, header=None, names=COL_NAMES, engine=EXCEL_ENGINE,
-    )
+    if path.suffix == '.csv':
+        return pd.read_csv(path, header=None, names=COL_NAMES)
+    return pd.read_excel(path, header=None, names=COL_NAMES, engine=EXCEL_ENGINE)
 
 
 def combine_excel_files(paths: list[Path], max_workers: int = 4) -> None:

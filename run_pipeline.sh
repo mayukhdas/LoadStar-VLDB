@@ -119,7 +119,7 @@ $PYTHON luna/forecasting_model.py \
     --input luna/testbed.csv \
     --output_dir outputs \
     --quantiles 0.01 0.25 0.5 0.75 0.9 \
-    --forecast_days 3 \
+    --forecast_days 7 \
     --n_iter 10 \
     --cv 2
 

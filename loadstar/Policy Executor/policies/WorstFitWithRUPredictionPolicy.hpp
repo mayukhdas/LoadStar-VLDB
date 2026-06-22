@@ -225,9 +225,15 @@ void Allocation(CurrentState &currentState, vector<pair<string, string>> uriPart
                     // cout<<"[DEBUG] NODE NOT FOUND USING ACTUAL LOADS"<<endl;
                     // cout<<" CANNOT ACCOMODATE "<<it.first<<" "<<it.second<<endl;
                     // cout<<"URI PARTITION "<<it.first<<" "<<it.second<<" CANNOT ACCOMODATE "<<load<<" "<<cpu<<" "<<memory<<" "<<storage<<endl;
-                     assert(1<0);
-                     break;
-                 }
+                    //assert(1<0);
+                    //break;
+
+                    cerr << "[ERROR] Cannot allocate URI partition: "
+                         << it.first << " " << it.second
+                         << " at time " << incomingRow.time << endl;
+
+                    continue;                
+                }
                 //  cout<<"NODE ID "<<candidateNode<<" IS THE CANDIDATE NODE"<<endl;
                     predictions.AddReplicaToForecastMap(candidateNode,it,currentState);
                     // if(candidateNode ==152){

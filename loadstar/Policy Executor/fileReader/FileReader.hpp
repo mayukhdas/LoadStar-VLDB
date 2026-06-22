@@ -1,6 +1,7 @@
 #pragma once
 #include <bits/stdc++.h>
 #include <cmath>
+#include "../common/common.h"
 #include "../domain/IncomingRow.hpp"
 #include "../domain/Row.hpp"
 #include <boost/multiprecision/cpp_int.hpp>
@@ -86,11 +87,16 @@ public:
                 string ReplicaId = row[3];
                 string UniqueReplicaId = normalizeId(row[2]);
                 boost::int512_t Load = toInt512(row[4]);
+                // Clamp to per node constraints to avoid issues with predictions being higher than node capacity.
+                if (Load > NODE_LOAD) Load = NODE_LOAD -1;
 
                 boost::int512_t  Cpu = 0, Memory = 0, Storage=0, LoadForecasts = 0, CPUForecasts = 0, MemoryForecasts = 0, StorageForecasts =0;
                 if(optionalArgsForecastFile){
                     Cpu = toInt512(row[5]);
                     Memory = toInt512(row[6]);
+                    // Clamp to per node constraints to avoid issues with predictions being higher than node capacity.
+                    if (Cpu > CPU_LOAD) Cpu = CPU_LOAD -1;
+                    if (Memory > MEMORY_LOAD) Memory = MEMORY_LOAD -1;
                 }
                 if(isWorstFitWithPredictionsAvailable){
                     LoadForecasts = toInt512(row[5]);
@@ -99,6 +105,10 @@ public:
                     Cpu = toInt512(row[5]);
                     Memory = toInt512(row[6]);
                     Storage = toInt512(row[7]);
+                     // Clamp to per node constraints to avoid issues with predictions being higher than node capacity.
+                    if (Cpu > CPU_LOAD) Cpu = CPU_LOAD -1;
+                    if (Memory > MEMORY_LOAD) Memory = MEMORY_LOAD -1;
+                    if (Storage > STORAGE_LOAD) Storage = STORAGE_LOAD -1;
                 }
                 if(time!=incomingRow.time and reading==1){
                     // go to previous line and return the incoming row, in case you are at the next timestamp row already 
